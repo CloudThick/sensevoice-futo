@@ -55,7 +55,11 @@ class SenseVoiceInputMethodService : InputMethodService() {
                 status.text = "请说话…"
                 val samples = AudioCapture.recordUntilSilence(this@SenseVoiceInputMethodService)
                 status.text = "正在识别…"
-                val raw = SenseVoiceEngine.recognize(this@SenseVoiceInputMethodService, samples, currentLanguage())
+                val raw = SenseVoiceEngine.recognize(
+                    this@SenseVoiceInputMethodService,
+                    samples,
+                    currentLanguage()
+                )
                 val cleaned = TextCleaner.clean(raw)
                 currentInputConnection?.commitText(cleaned, 1)
                 switchBack()
@@ -66,12 +70,20 @@ class SenseVoiceInputMethodService : InputMethodService() {
     }
 
     private fun currentLanguage(): String {
+        // Prefer the target editor's language hint when the app provides one.
         val localeTag = if (Build.VERSION.SDK_INT >= 24) {
             currentInputEditorInfo?.hintLocales?.get(0)?.toLanguageTag().orEmpty()
-        } else ""
-        if (localeTag.lowercase().startsWith("en")) return "en"
+        } else {
+            ""
+        }
+        if (localeTag.lowercase(Locale.ROOT).startsWith("en")) return "en"
+        if (localeTag.lowercase(Locale.ROOT).startsWith("zh")) return "zh"
+
+        // Otherwise use the currently selected subtype of this voice IME.
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         @Suppress("DEPRECATION")
-        val subtypeLocale = currentInputMethodSubtype?.locale.orEmpty()
+        val subtypeLocale = imm.currentInputMethodSubtype?.locale.orEmpty()
+
         return if (subtypeLocale.lowercase(Locale.ROOT).startsWith("en")) "en" else "zh"
     }
 
