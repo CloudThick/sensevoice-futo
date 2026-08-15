@@ -1,0 +1,10 @@
+SenseVoice × FUTO 原型：上传到 GitHub
+
+1. 解压本 ZIP。
+2. 打开 https://github.com/CloudThick/sensevoice-futo
+3. 在空仓库页面点 “uploading an existing file”（或 Add file → Upload files）。
+4. 把解压后文件夹里的所有内容拖进去，包括 .github 文件夹。
+5. 页面下方 Commit changes 直接提交到 main。
+6. 提交后点仓库顶部 Actions；应该自动出现 “Build Android APK”。
+
+不要把这个 ZIP 本身直接传上去；要先解压，再上传里面的文件和文件夹。

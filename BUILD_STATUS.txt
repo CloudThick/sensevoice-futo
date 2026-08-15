@@ -1,0 +1,11 @@
+当前状态：GitHub Actions 自动编译原型。
+
+目标：
+- SenseVoice Small INT8 本地识别
+- 中文强制 zh / 英文 en
+- ITN 开启
+- 保守清理“嗯/呃/额”和明显连续重复
+- 支持 android.speech.action.RECOGNIZE_SPEECH
+- 支持独立 Voice InputMethodService
+
+模型不打包进 APK；第一次打开应用后下载约 240 MB，之后识别本身可离线运行。
