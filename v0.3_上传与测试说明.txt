@@ -1,0 +1,43 @@
+SenseVoice × FUTO v0.3：本地小模型智能整理
+
+这一版的目标：
+实时阶段：
+  麦克风 -> SenseVoice -> 实时临时文字
+最终阶段（点“停止并输入”）：
+  SenseVoice 最终转写 -> Qwen3 0.6B 本地整理 -> 安全检查 -> 输入框
+
+小模型负责：
+- 标点和断句
+- 清理明显的“嗯/呃/额/那个”等口头填充词
+- 清理明显连续重复
+- 处理明确的自我修正（例如“不是……应该是……”）
+- 不总结、不扩写、不回答内容
+
+安全措施：
+- 小模型只在最终提交时运行，不影响实时预览速度
+- 数字、URL、邮箱等如果被小模型删掉/改坏，会自动退回保守清理结果
+- 输出长度异常、出现聊天机器人式回答，也会自动退回
+- 每次整理完成后卸载 LLM，避免一直占用约数百 MB 内存
+- 没下载智能整理模型时，自动退回 v0.2 的 TextCleaner
+
+模型：
+- Qwen3 0.6B Q4_0 GGUF，首次在 App 内单独下载，约 430 MB
+- SenseVoice 模型仍然保留
+- 两个模型都下载完成后，识别和最终整理都可离线
+
+上传到 GitHub：
+A. app 文件
+1. 解压 ZIP。
+2. GitHub 仓库 CloudThick/sensevoice-futo -> Add file -> Upload files。
+3. 把解压出的 app 文件夹拖进去，覆盖同路径文件并 Commit。
+
+B. workflow（建议用网页编辑，避免 .github 隐藏目录问题）
+1. 打开仓库里的 .github/workflows/android.yml
+2. 点铅笔 Edit。
+3. 用本 ZIP 中 .github/workflows/android.yml 的全部内容覆盖原内容。
+4. Commit changes。
+
+注意：
+- 这次 Actions 会额外从官方 llama.cpp 源码编译 Android AAR，所以第一次 CI 会明显比 v0.2 慢。
+- 当前构建只打 arm64-v8a，适合你现在测试 SenseVoice Demo 的这台 arm64 手机。
+- 提交完回复：v0.3 提交好了

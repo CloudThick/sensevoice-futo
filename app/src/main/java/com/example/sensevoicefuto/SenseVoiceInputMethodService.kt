@@ -203,7 +203,17 @@ class SenseVoiceInputMethodService : InputMethodService() {
                     samples,
                     language
                 )
-                val cleaned = TextCleaner.clean(raw)
+
+                val cleaned = if (LlmModelInstaller.isInstalled(this@SenseVoiceInputMethodService)) {
+                    status.text = "正在用本地小模型整理文字…"
+                    LocalTextRefiner.refine(
+                        this@SenseVoiceInputMethodService,
+                        raw,
+                        language
+                    )
+                } else {
+                    TextCleaner.clean(raw)
+                }
 
                 progress.visibility = View.GONE
                 if (cleaned.isNotBlank()) {

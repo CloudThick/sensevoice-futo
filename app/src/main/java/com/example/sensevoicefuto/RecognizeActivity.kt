@@ -60,8 +60,14 @@ class RecognizeActivity : Activity() {
                 status.text = "请说话…（停顿约 1 秒自动结束）"
                 val samples = AudioCapture.recordUntilSilence(this@RecognizeActivity)
                 status.text = "正在识别…"
-                val raw = SenseVoiceEngine.recognize(this@RecognizeActivity, samples, requestedLanguage())
-                val cleaned = TextCleaner.clean(raw)
+                val language = requestedLanguage()
+                val raw = SenseVoiceEngine.recognize(this@RecognizeActivity, samples, language)
+                val cleaned = if (LlmModelInstaller.isInstalled(this@RecognizeActivity)) {
+                    status.text = "正在用本地小模型整理文字…"
+                    LocalTextRefiner.refine(this@RecognizeActivity, raw, language)
+                } else {
+                    TextCleaner.clean(raw)
+                }
                 val out = Intent().apply {
                     putStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS, arrayListOf(cleaned))
                     putExtra(RecognizerIntent.EXTRA_CONFIDENCE_SCORES, floatArrayOf(1.0f))

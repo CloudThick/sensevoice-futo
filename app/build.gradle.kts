@@ -7,9 +7,9 @@ plugins {
 
 val sherpaVersion = "1.13.5"
 val sherpaAar = layout.projectDirectory.file("libs/sherpa-onnx-$sherpaVersion.aar")
+val llamaAar = layout.projectDirectory.file("libs/llama-android.aar")
 
 // The official sherpa-onnx Android AAR is a GitHub release asset.
-// Android Studio/Gradle will fetch it once before the first build.
 tasks.register("downloadSherpaAar") {
     outputs.file(sherpaAar)
     doLast {
@@ -35,8 +35,13 @@ android {
         applicationId = "com.example.sensevoicefuto"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1-prototype"
+        versionCode = 3
+        versionName = "0.3-local-refiner"
+
+        // This personal build targets the same arm64 phone used for the SenseVoice demo.
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     buildTypes {
@@ -62,6 +67,12 @@ android {
 
 dependencies {
     implementation(files(sherpaAar))
+    implementation(files(llamaAar))
+
+    // llama.android's public AAR references these AndroidX libraries.
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
+
     implementation("org.apache.commons:commons-compress:1.27.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 }
