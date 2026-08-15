@@ -1,0 +1,11 @@
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#4F6B9D</item>
+    </style>
+    <style name="RecognizerTheme" parent="android:style/Theme.Material.Light.Dialog.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowMinWidthMajor">85%</item>
+        <item name="android:windowMinWidthMinor">85%</item>
+    </style>
+</resources>
