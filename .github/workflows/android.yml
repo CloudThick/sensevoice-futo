@@ -73,6 +73,14 @@ jobs:
           s = s.replace("minSdk = 33", "minSdk = 26")
           s = s.replace('listOf("arm64-v8a", "x86_64")', 'listOf("arm64-v8a")')
           lib.write_text(s)
+
+          logging = root / "lib/src/main/cpp/logging.h"
+          s = logging.read_text()
+          old = "static inline int ai_should_log(int prio) {\n    return __android_log_is_loggable(prio, LOG_TAG, LOG_MIN_LEVEL);\n}"
+          new = "static inline int ai_should_log(int prio) {\n#if defined(__ANDROID_API__) && __ANDROID_API__ >= 30\n    return __android_log_is_loggable(prio, LOG_TAG, LOG_MIN_LEVEL);\n#else\n    return prio >= LOG_MIN_LEVEL;\n#endif\n}"
+          if old not in s:
+              raise RuntimeError("Expected ai_should_log implementation was not found")
+          logging.write_text(s.replace(old, new))
           PY
 
           gradle --no-daemon \
