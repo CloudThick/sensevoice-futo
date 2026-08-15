@@ -70,7 +70,7 @@ dependencies {
     implementation(files(llamaAar))
 
     // llama.android's public AAR references these AndroidX libraries.
-    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.datastore:datastore-preferences:1.2.0")
 
     implementation("org.apache.commons:commons-compress:1.27.1")
