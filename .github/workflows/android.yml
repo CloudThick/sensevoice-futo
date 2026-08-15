@@ -10,10 +10,13 @@ on:
 permissions:
   contents: read
 
+env:
+  LLAMA_CPP_COMMIT: 27df9199d16c393868d20b3ed28b4f72e30de6bd
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -28,16 +31,59 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK 35
+      - name: Install Android SDK and native toolchain
         shell: bash
         run: |
           yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+          sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "platform-tools" \
+            "ndk;29.0.13113456" \
+            "cmake;3.31.6"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+
+      - name: Build llama.cpp Android AAR
+        shell: bash
+        run: |
+          rm -rf third_party/llama.cpp
+          mkdir -p third_party/llama.cpp
+          git -C third_party/llama.cpp init
+          git -C third_party/llama.cpp remote add origin https://github.com/ggml-org/llama.cpp.git
+          git -C third_party/llama.cpp fetch --depth 1 origin "$LLAMA_CPP_COMMIT"
+          git -C third_party/llama.cpp checkout --detach FETCH_HEAD
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path("third_party/llama.cpp/examples/llama.android")
+          versions = root / "gradle/libs.versions.toml"
+          s = versions.read_text()
+          s = s.replace('agp = "8.13.2"', 'agp = "8.7.3"')
+          s = s.replace('kotlin = "2.3.0"', 'kotlin = "2.0.21"')
+          versions.write_text(s)
+
+          lib = root / "lib/build.gradle.kts"
+          s = lib.read_text()
+          s = s.replace("compileSdk = 36", "compileSdk = 35")
+          s = s.replace("minSdk = 33", "minSdk = 26")
+          s = s.replace('listOf("arm64-v8a", "x86_64")', 'listOf("arm64-v8a")')
+          lib.write_text(s)
+          PY
+
+          gradle --no-daemon \
+            -p third_party/llama.cpp/examples/llama.android \
+            :lib:assembleRelease \
+            --stacktrace
+
+          mkdir -p app/libs
+          cp third_party/llama.cpp/examples/llama.android/lib/build/outputs/aar/lib-release.aar \
+             app/libs/llama-android.aar
+          ls -lh app/libs/llama-android.aar
 
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug --stacktrace
@@ -46,7 +92,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: SenseVoice-FUTO-debug
+          name: SenseVoice-FUTO-v0.3-local-refiner-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
